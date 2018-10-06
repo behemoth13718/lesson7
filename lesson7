@@ -1,0 +1,152 @@
+# lesson7
+################################## Описание аннотаций #######################################
+
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
+@Target(ElementType.METHOD)
+@Retention(RetentionPolicy.RUNTIME)
+public @interface Test {
+    int priority();
+}
+
+@Target(ElementType.METHOD)
+    @Retention(RetentionPolicy.RUNTIME)
+    public @interface BeforeMetod { 
+ }
+
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.METHOD)
+public @interface AfterMetod {
+}
+
+
+
+#################################### Класс-тест ##############################################
+
+public class AllTest {
+
+    @AfterMetod
+    public void methodAfter() {
+        System.out.println("methodAfter");
+    }
+
+//    @AfterMetod
+//    public void methodAfterElse() {
+//        System.out.println("methodAfter");
+//    }
+
+
+    @BeforeMetod
+    public void methodBefore() {
+        System.out.println("methodBefore");
+    }
+//    @BeforeMetod
+//    public void methodBeforeElse() {
+//        System.out.println("methodBefore");
+//    }
+
+    @Test(priority = 3)
+    public void methodTest1() {
+        System.out.println("methodTest1 priority 3");
+    }
+
+    @Test(priority = 1)
+    public void methodTest2() {
+        System.out.println("methodTest2 priority 1");
+    }
+
+    @Test(priority = 2)
+    public void methodTest3() {
+        System.out.println("methodTest3 priority 2");
+    }
+
+}
+
+################################################ Класс Main  и start() ################################################
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.HashMap;
+
+
+public class Main {
+
+    public static void start(Class<?> className) {
+        final int MIN_PRIORITY = 1;
+        final int MAX_PRIORITY = 10;
+        int countBefore = 0;
+        int countAfter = 0;
+        HashMap<Integer, Method> map = new HashMap<>();
+
+        for (Method method : className.getDeclaredMethods()) {
+                if (method.isAnnotationPresent(BeforeMetod.class)){
+                    countBefore++;
+                    if(countBefore > 1){
+                        try {
+                            throw new RuntimeException("Annotation Before is not unique");
+                        } catch (RuntimeException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+
+            if (method.isAnnotationPresent(AfterMetod.class)){
+                countAfter++;
+                if(countAfter > 1){
+                    try {
+                        throw new RuntimeException("Annotation After is not unique");
+                    } catch (RuntimeException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+
+            if (method.getAnnotation(BeforeMetod.class) != null){
+                map.put(MIN_PRIORITY - 1, method);
+            }
+            if (method.getAnnotation(AfterMetod.class) != null) {
+                map.put(MAX_PRIORITY + 1, method);
+            }
+            if (method.getAnnotation(Test.class) != null) {
+                Test test = method.getAnnotation(Test.class);
+                map.put(test.priority(), method);
+            }
+        }
+
+        for (Integer key : map.keySet()) {
+        }
+
+
+        try {
+            Object alltest = className.newInstance();
+            for (Integer key : map.keySet()) {
+                map.get(key).invoke(alltest);
+            }
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        } catch (InvocationTargetException e) {
+            e.printStackTrace();
+        } catch (InstantiationException e) {
+            e.printStackTrace();
+        }
+
+
+    }
+
+    public static void main(String[] args) {
+        System.out.println("Execution of methods:" + "\n");
+        start(AllTest.class);
+
+    }
+}
+######################################### Вывод #########################################
+Execution of methods:
+
+methodBefore
+methodTest2 priority 1
+methodTest3 priority 2
+methodTest1 priority 3
+methodAfter
+
