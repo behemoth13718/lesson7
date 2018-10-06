@@ -114,11 +114,7 @@ public class Main {
                 map.put(test.priority(), method);
             }
         }
-
-        for (Integer key : map.keySet()) {
-        }
-
-
+        
         try {
             Object alltest = className.newInstance();
             for (Integer key : map.keySet()) {
