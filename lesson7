@@ -84,22 +84,14 @@ public class Main {
                 if (method.isAnnotationPresent(BeforeMetod.class)){
                     countBefore++;
                     if(countBefore > 1){
-                        try {
                             throw new RuntimeException("Annotation Before is not unique");
-                        } catch (RuntimeException e) {
-                            e.printStackTrace();
-                        }
                     }
                 }
 
             if (method.isAnnotationPresent(AfterMetod.class)){
                 countAfter++;
                 if(countAfter > 1){
-                    try {
                         throw new RuntimeException("Annotation After is not unique");
-                    } catch (RuntimeException e) {
-                        e.printStackTrace();
-                    }
                 }
             }
 
